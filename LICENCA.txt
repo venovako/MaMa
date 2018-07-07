@@ -1,0 +1,23 @@
+***   Autorska prava © 2005 Vedran Novaković <venovako@gmail.com>   ***
+
+   MaMa  specifikacija
+   MaMa  interpreter (x0x verzije)
+   MaMaC kompajler   (x0x verzije)
+   Biblioteka Standardnih makrOa
+
+
+***   Autorska prava © 2005 Marko Doko <mdoko.math@gmail.com>   ***
+
+   MaMa  specifikacija
+   MaMut grafičko korisničko sučelje
+
+
+MaMa softverski paket, u cjelini i svim dijelovima, vlasništvo je autora.
+Sva su autorska prava pridržana.  Paket i svi njegovi djelovi ponuđeni su
+od autora u nadi da će biti korisni, ali bez IKAKVOG DALJNJEG JAMSTVA!
+
+Korištenje, kopiranje i daljnja distribucija paketa ili bilo kojeg
+njegova dijela, osim ako nije naglašeno drugačije, dozvoljeno je i
+u izvornom i u binarnom obliku, sa ili bez izmjena, uz uvjet da
+ovaj dokument nije modificiran i da je sadržan u svakoj distribuciji
+paketa ili bilo kojeg njegova dijela.

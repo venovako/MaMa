@@ -1,0 +1,1110 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[croatian]{babel}
+\usepackage[latin2]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[dvips]{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage[backref,unicode,pdfpagemode=UseNone,pdfauthor={Vedran Novakovi\'c},pdftitle={MaMa specifikacija}]{hyperref}
+\pagestyle{headings}
+\providecommand{\hr}{\vskip 1.11ex\hrule\vskip 1.11ex}
+\providecommand{\MaMa}{\textbf{MaMa}}
+\providecommand{\ASCII}{\textsf{ASCII}}
+\providecommand{\Unicode}{\textsf{Unicode}}
+\providecommand{\RAM}{\textsf{RAM}}
+\providecommand{\mamac}{\texttt{MaMaC}}
+\providecommand{\mama}{\texttt{MaMa}}
+\providecommand{\mamut}{\texttt{MaMut}}
+\providecommand{\bso}{\texttt{BSO}}
+\providecommand{\INC}[1]{\texttt{INC #1}}
+\providecommand{\DEC}[2]{\texttt{DEC #1 #2}}
+\providecommand{\DEK}[2]{\texttt{DEK #1 #2}}
+\providecommand{\DECK}{$\mathtt{DE}_\mathtt{C}^\mathtt{K}$}
+\providecommand{\GOTO}[1]{\texttt{GOTO #1}}
+\providecommand{\CALL}[1]{\texttt{CALL #1}}
+\providecommand{\SET}[2]{\texttt{SET #1 #2}}
+\providecommand{\SYSTEM}[1]{\texttt{SYSTEM #1}}
+\providecommand{\VERSION}[1]{\texttt{VERSION #1}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+\begin{document}
+\thispagestyle{empty}
+\vskip 7.77ex
+\begin{center}
+\fbox{\huge\MaMa\ specifikacija}
+\vskip 2.22ex
+\mbox{{\large\textsl{Vedran\ Novakoviæ\hskip.5em\&\hskip.5emMarko\ Doko}}}
+\end{center}
+\vskip 3.33ex
+\tableofcontents
+\newpage
+
+\section{uvod}
+
+\subsection{o dokumentu}
+
+Ovaj dokument opisuje \MaMa\ softverski paket \emph{krajnjim korisnicima},
+kao priruènik i referenca ujedno.  Pojedine su sekcije nu¾ne i
+\emph{razvijateljima}.
+
+\subsubsection{distribucija}
+
+Distribuiranje ovog dokumenta dozvoljeno je, sa ili bez izmjena i u
+bilo kojem obliku, pod uvjetom da sve izmjene budu nedvosmisleno
+naznaèene kao takve.
+
+\subsubsection{predznanje}
+
+Potrebno predznanje za èitanje ovog dokumenta i uporabu njime opisanog
+softvera ukljuèuje elementarne informacije o raèunalnim arhitekturama,
+matematièkoj logici i kori¹tenju programskih prevodioca te
+interpretera.
+
+\subsection{sa¾etak}
+
+\MaMa\ (\textbf{Ma}cro \textbf{Ma}chine) softverski je paket
+namijenjen simulaciji \RAM\ strojeva obogaæenih makroima (tzv.\ makro
+strojeva).  Saèinjavaju ga:
+\begin{enumerate}
+\item kompajler u bytecode (\mamac)
+\item bytecode interpreter (\mama)
+\item GUI (rudimentarni IDE) (\mamut)
+\item biblioteka standardnih makroa (\bso)
+\item prateæa dokumentacija i primjeri
+\end{enumerate}
+
+\MaMa\ je pisana s namjerom da bude jednostavna, bogata moguænostima,
+razumno portabilna te iznimno efikasna implementacija makro stroja.
+
+\subsection{uvjeti kori¹tenja}
+
+Uvjeti kori¹tenja detaljnije su opisani u dokumentu
+\texttt{LICENSE.txt} iz paketa.
+\newpage
+
+\section{\RAM\ stroj}
+
+\textbf{\RAM\ stroj} idealizirani je model raèunala s pohranjenim
+programom.  Svaki je \RAM\ program konaèan neprazan niz \RAM\
+instrukcija.  Instrukcije su numerirane slijedno, poèev od $0$.  \RAM\
+stroj posjeduje registar-brojaè, koji sadr¾i adresu instrukcije koja
+se ima sljedeæa izvr¹iti, i niz od prebrojivo mnogo registara,
+numeriranih slijedno od $0$, koji imaju direktan pristup i sadr¾e
+proizvoljno velike prirodne brojeve.
+
+Model \RAM\ stroja realiziran u \MaMa\ paketu ima konaèno mnogo
+registara, ostvarenih nepredznaèenim $64$-bitnim integerima, pa
+postoji (zanemariva) moguænost overflowa.
+
+Dozvolimo li da jedan \RAM\ program pozove drugi kao subrutinu u
+rje¹avanju nekog veæeg problema, tada ka¾emo da imamo \textbf{makro stroj}.
+\MaMa\ je (u svim definicijama konaèna) implementacija tog koncepta.
+
+Bitno je napomenuti da makro ``ne vidi'' \RAM\ program koji ga poziva,
+tako da sve naredbe koje ukljuèuju eksplicitno mijenjanje registra
+brojaèa moraju biti realizirane kao instrukcije stroja, a ne makroi.
+
+\subsection{\RAM\ program}
+
+U matematièkoj su se teoriji iskristalizirala dva sistema instrukcija
+\RAM\ programa, za koje æe biti pokazano da su jednake u snazi (jedne
+izrazive pomoæu drugih i obratno).
+
+\subsubsection{inkrement}
+
+Oba sistema imaju zajednièku instrukciju \INC{$i$} koja poveæava
+sadr¾aj registra $i$ za $1$ i prelazi na sljedeæu po redu
+instrukciju.
+
+\subsubsection{\SYSTEM{2}}
+
+U tom sistemu postoji jo¹ samo jedna naredba, \DEC{$i$}{$k$} koja
+smanjuje sadr¾aj registra $i$ ako je on veæi od $0$ i postavlja u
+registar-brojaè vrijednost $k$ (skaèe na labelu $k$).  Ako je
+vrijednost u registru $i$ jednaka $0$, tada se ona ne mijenja i
+prelazi se na sljedeæu po redu instrukciju.
+
+\subsubsection{\SYSTEM{3}}
+
+U tom sistemu postoje jo¹ dvije naredbe, \DEC{$i$}{$k$} te
+\GOTO{$k$}.  \DEC{$i$}{$k$} smanjuje sadr¾aj registra $i$ ako je on
+veæi od $0$ i prelazi na sljedeæu po redu instrukciju, u suprotnom ne
+mijenja sadr¾aj registra $i$ nego u registar-brojaè pohranjuje
+vrijednost $k$.  \GOTO{$k$} bezuvjetno u registar-brojaè pohranjuje
+vrijednost $k$ ne mijenjajuæi sadr¾aj niti jednog registra.
+
+\subsubsection{napomene}
+
+Dogovorno æemo u sistemu $2$ s \texttt{DEK} oznaèavati \texttt{DEC} iz
+sistema $3$ i obratno.  Èitatelju za vje¾bu ostavljamo da raspi¹e
+dekremente iz jednog sistema u drugome i time opravda ovu konvenciju.
+Takoðer, pokazati da je \texttt{GOTO} trivijalno izvediv u sistemu
+$2$, pa time smatramo da i ta naredba u reèenom sistemu postoji kao
+pokrata.
+
+\subsection{rad \RAM\ stroja}
+
+\subsubsection{inicijalizacija}
+
+Prije poèetka rada \RAM\ stroja, u registre $1$ do $k$ spremaju se
+ulazni podaci \RAM\ programa ($k=0$ povlaèi da program nema input).
+
+Smatramo da prije unosa inputa, dakle prilikom ``stvaranja'' \RAM\
+stroja, svi registri, ukljuèivo i registar-brojaè, imaju poèetnu
+vrijednost $0$.
+
+\subsubsection{start \& stop}
+
+RAM program poèinje izvr¹avanje instrukcijom na labeli $0$, a staje
+kada se u registru-brojaèu tijekom \emph{automatskog} inkrementiranja
+naðe labela koja je neposredni sljedbenik najveæe labele programa,
+oznaèimo je s $n$ (takva labela postoji jer je svaki program
+konaèan).  Pa¾nja: \emph{nije} dozvoljen izlaz skokom na nepostojeæu
+labelu programa (¹to neke teorije dopu¹taju, a neke ne).
+
+Iznimka od reèenog su naredbe \GOTO{::} i \DECK\ \textsl{registar}
+\texttt{::} koje smatraju da na labeli $n$ pi¹e naredba \INC{\%\%} a
+na $n\!+\!1\ \mathtt{DEC}_3$ \texttt{\%\%} \texttt{:!} pa skokom na
+$n$-tu labelu omoguæavaju pravilan prekid rada, koji ne promijeni
+vrijednost niti jednog registra.
+
+Uoèiti da je svaki program konaèan, pa tako postoji i najmanji
+$m\in\mathbb{N}$ takav da se svi registri od ukljuèivo $m$-tog nadalje
+u programu ne koriste.
+
+\RAM\ program ne mora nikad stati.  Dozvoljene su $\infty$ petlje (i
+rekurzivni pozivi makroa, ali to je specifiènost paketa \MaMa, jer
+neke teorije to ne dopu¹taju).  Ako \RAM\ stroj, jednom pokrenut,
+ikada stane, iz registra $0$ i¹èitamo rezultat izraèunavanja.
+
+\subsubsection{taktovi stroja}
+
+Rad \RAM\ stroja odvija se u taktovima.  U svakom se taktu izvr¹i
+jedna i samo jedna instrukcija stroja (ako je rijeè o pozivu makroa,
+izvr¹i se toèno taj makro poziv, ali u stvari èitav pozvani makro
+program).
+
+Stroj zapoèinje radom na nultoj instrukciji \RAM\ programa, proèitav¹i
+u registru-brojaèu poèetnu vrijednost $0$.  Tijekom rada stroj proèita
+vrijednost registra-brojaèa, recimo $r$, i skoèi na $r$-tu liniju
+programa.  Prije izvr¹avanja novodohvaæene instrukcije vrijednost
+registra-brojaèa poveæa se za $1$.  Neke instrukcije mogu svojim
+izvr¹avanjem promijeniti vrijednost registra-brojaèa, kako je prije
+opisano, ali je ne mogu izravno saznati.
+\newpage
+\section{\MaMa}
+
+U ovoj æemo sekciji opisati apstraktni \MaMa\ sustav.  Svaki sustav
+koji odgovara neformalnim specifikacijama iz ove sekcije, s
+eventualnim kompatibilnim nadogradnjama, jest \MaMa\ sustav, kojega je
+na¹ softverski paket tek jedna moguæa implementacija.
+
+Svaki se \MaMa\ sustav sastoji od bytecode kompajlera izvornog \MaMa\
+programa, te od interpretera tog bytecodea.  Ovdje æemo se baviti
+strukturom izvornog programa i bytecodea.  U kasnijim æemo odjeljcima
+reæi ne¹to vi¹e o samim softverskim komponentama.
+
+\subsection{\MaMa\ program verzija 0}
+
+Dajemo precizne, ali neformalne sintaktièke (i dijelom semantièke)
+definicije elemenata \MaMa\ programa.
+
+\subsubsection{neformalna sintaksa programa}
+
+\MaMa\ program neprazna je tekstualna \ASCII\ datoteka (podr¹ka za
+\Unicode\ nije u planu) duljine najvi¹e \texttt{2} \texttt{GB}, s
+obaveznom ekstenzijom \texttt{.MMs}\footnote{\MaMa\ source} i
+elementima ni¾e opisanima:
+\begin{itemize}
+\item Program je neprazan niz direktiva i instrukcija.
+\item Sve su naredbe i direktive \emph{case-insensitive}.
+\item Argumenti instrukcija i direktiva odvojeni su od instrukcije
+  (direktive) i od drugih argumenata barem jednom bjelinom, ako nije
+  odreðeno drugaèije.
+\item Svaka instrukcija ili direktiva mora poèeti i zavr¹iti unutar
+  iste linije.
+\item Komentari poèinju od prvog pojavljivanja znaka \# u liniji i
+  traju do kraja te linije.  Sadr¾aj komentara pri kompilaciji se
+  ignorira.
+\item Linija je ili labelirana ili nelabelirana.  Nelabelirana linija
+  koja sadr¾i instrukciju ili direktivu poèinje s $0$ ili vi¹e
+  bjelina, te potom instrukcijom (direktivom), uz opcionalne bjeline
+  i/ili komentar na kraju.  Nelabelirane linije koje sadr¾e samo $0$
+  ili vi¹e bjelina i/ili komentar broje se, ali ignoriraju prilikom
+  kompilacije.
+\item Linija mo¾e biti labelirana ako i samo ako sadr¾i instrukciju.
+  Labelirana linija poèinje opcionalnim bjelinama, zatim slijede
+  labela, barem jedna bjelina i potom neka instrukcija, uz opcionalne
+  bjeline i/ili komentar na kraju.
+\end{itemize}
+
+\subsubsection{neformalna sintaksa direktiva}
+
+Direktive su uputstva kompajleru.  Zasad postoje dvije direktive.
+Svaka direktiva mora doæi prije bilo koje instrukcije i smije se
+pojaviti najvi¹e jednom u tijelu programa.  Relativan poredak
+direktiva je nebitan.
+
+\begin{itemize}
+\item \SYSTEM{$2$} odnosno \SYSTEM{$3$} implicira semantiku naredbi
+  kako je to za reèene sisteme gore opisano.  Ova direktiva je
+  \emph{obavezna\/}!
+\item \VERSION{$i$}, $0\le i\le 15$, zahtijeva generiranje bytecodea
+  verzije $i$.  Ako nije prisutna, podrazumijeva se zadnja podr¾ana
+  verzija bytecodea.
+\end{itemize}
+
+\subsubsection{neformalna sintaksa instrukcija}
+
+Postoji ¹est instrukcija \MaMa\ programa:
+\begin{itemize}
+\item\INC{\textsl{registar}}
+\item\DEC{\textsl{registar}}{\textsl{labela}}
+\item\DEK{\textsl{registar}}{\textsl{labela}}
+\item\SET{\textsl{registar}}{\textsl{registar} $\vee$ \textsl{konstanta}}
+\footnote{ \texttt{SET} je redundantna instrukcija, vidi odjeljak 3.1.6 !}
+\item\GOTO{\textsl{labela}}
+\item\CALL{\textsl{ime\_MaMa\_programa}} $R_0$ $R_1$ $\cdots$ $R_k$
+\end{itemize}
+
+U svakoj instrukciji pod varijablom \textsl{registar} smatramo jedno od:
+\begin{itemize}
+\item\texttt{\%i}\hskip 3em minus 0.1em $i\in\mathbb{N}$, $0\le
+  i<m<2^{28}-1$ indeks \RAM\ registra kao cjelobrojna konstanta jezika C
+  u bazi $8$, $10$ ili $16$ \emph{bez sufiksa\/}.
+\item\texttt{\%\%}\hskip 3em minus 0.1 em indeks $m$-tog (pomoænog)
+  registra, kako je veæ obja¹njeno.
+\end{itemize}
+
+Pod pojmom \textsl{konstanta} smatramo 64-bitne nepredznaèene
+cjelobrojne konstante jezika C u bazi $8$, $10$ ili $16$ \emph{bez sufiksa\/}.
+
+U programima nije moguæe adresirati u instrukcijama za skok izravno,
+brojem programske linije!  Taj je princip podlo¾an gre¹kama i
+vrlo nespretan zbog neizvr¹ivih linija.  Za adresiranje slu¾i
+\textsl{labela} nekog od ova tri tipa:
+\begin{itemize}
+\item\texttt{:}\textsl{\texttt{label}}\hskip 1em
+\textsl{\texttt{label}} je neprazan niz grafièkih
+karaktera\footnote{po ISO C \texttt{isgraph}() klasifikaciji} i
+predstavlja simbolièko ime linije na èijem se poèetku pojavljuje.  Ne
+mogu postojati dvije razlièite linije s istom labelom!
+\item\texttt{::}\hskip 3em minus 0.1em$n$-ta linija (prva iza zadnje).
+\item\texttt{:!}\hskip 3em minus 0.1em trenutna linija na kojoj se ova
+  labela javlja.  Idealno za $\infty$ i one-liner petlje \GOTO{:!} ili
+  \DECK\ \textsl{registar} \texttt{:!} oblika.
+\end{itemize}
+
+\subsubsection{tips \& tricks}
+
+Iako se mo¾da èini nepotpunim rje¹enjem nemoguænost imenovanja
+registara suvislim mnemonicima, to je i dalje moguæe uèiniti!
+Dovoljan je neki (npr.\ C) pretprocesor i ne¹to u duhu sljedeæe
+sekvence na poèetku predlo¹ka va¹eg buduæeg \MaMa\ programa:
+\begin{verbatim}
+#define ZBROJ    %7
+#define REZULTAT %0
+#define TEMP     %%
+\end{verbatim}
+
+Propustite li va¹ predlo¾ak kroz pretprocesor, dobit æete na izlazu
+sva pojavljivanja simbolièkih imena zamijenjena odgovarajuæim
+registrima, odnosno kompajleru prihvatljiv program.
+
+Takoðer, primijetite da ne postoji naredba \texttt{HALT} ili neka
+sliènog imena ¹to bi zaustavila rad stroja.  Mnoge teorije takvu
+naredbu ne dozvoljavaju, a ona je ekvivalentna s \GOTO{::} pa je nije
+potrebno uvoditi.
+
+\subsubsection{\texttt{CALL} semantika}
+\label{s:prog:call}
+
+\texttt{CALL} instrukcija izvr¹ava proizvoljni \MaMa\ program u makro
+kontekstu.  Kako je rijeè o netrivijalnoj operaciji, moli se èitatelj
+da prouèi okvirni dizajn èitavog \MaMa\ sustava u sekciji
+\ref{s:manual} prije nastavka ovog dijela.
+
+``\CALL{\textsl{ime\_MaMa\_programa}} $R_0$ $R_1$ $\cdots$ $R_k$''
+stvara novu instancu interpretera i poziva je u makro kontekstu uz
+sljedeæe vezanje registara (pod terminom \textsl{program} smatramo
+pozivajuæi, a pod \textsl{makro} pozvani program):
+\begin{center}
+\vskip 0.555ex
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{makro} & \textbf{program} & \textbf{ogranièenja}\\
+\hline\hline
+\texttt{\%}$0$ & $R_0$ & $R_0$ je \textsl{registar} i obavezan parametar\\
+\hline
+\texttt{\%}$1$ & $R_1$ & $R_1$ $\cdots$ $R_k$ je niz od $0$ ili vi¹e
+èlanova i $\forall\,1\le j\le k$\\
+$\cdots_m$ & $\cdots_p$ & \hskip -0.2pt$R_j$ je \textsl{registar} %td.\ $R_j\ne R_i\ \forall\,0\le i<j$
+ili nenegativna cjelobrojna konstanta\\
+\texttt{\%}$k$ & $R_k$ & jezika C u bazi $8$, $10$ ili $16$, strogo manja od $2^{64}$\\
+\hline
+\end{tabular}
+\vskip 0.555ex
+\end{center}
+
+Pojam \textsl{vezanje registara} oznaèava pojavu da pozvani makro ima
+\texttt{èitaj} i \texttt{pi¹i} pristup (odgovarajuæim pozivom
+proslijeðenim) registrima pozivajuæeg programa, kako je tablicom
+navedeno, preko indeksa nekog svog registra.  Pozivatelj i makro
+dijele one i samo one registre koji su eksplicitno ovakvim pozivom
+vezani.  Primijetiti da je vezanje registara inherentno rekurzivno,
+tj.\ moguæe je proizvoljno mnogo nivoa indirekcije.  Takoðer, va¾no je
+znati da je tijekom izvr¹avanja proizvoljnog, ali danog makro programa
+privremeni registar (\texttt{\%\%}) uvijek lokalan za taj program.
+
+Preostala moguænost je da se neki registri pozvanog makroa pune
+proslijeðenim konstantnim vrijednostima.  To je ujedno i jedina
+moguænost ukoliko korisnik stvara prvu instancu interpretera i
+zahtijeva od nje izvoðenje nekog \MaMa\ programa.  O tome vi¹e u
+opisu interpretera.
+
+\textsl{ime\_MaMa\_programa} ne mora biti prisutno.  Ako nije
+navedeno, podrazumijeva se rekurzivni poziv tekuæeg programa.  Ako
+jest, podvrgava se identiènom procesu kakav je opisan za istoimeni
+interpreterov argument.
+
+Opisani model makro poziva posve je analogan pozivu procedure
+(tj.\ subrutine) u nekom programskom jeziku koji ima prijenos
+argumenata po referenci (tzv.\ ``pass by reference''), kao ¹to su
+npr.\ \textsf{BASIC} ili \textsf{FORTRAN}, s time da smo se dogovorili
+da æemo za svaku subrutinu uvijek imati jedan (i to prvi) argument
+namijenjen samo za povratnu vrijednost.
+\hr
+
+Sve ¹to makro program radi vezanim registrima, u biti èini
+korespondentnim registrima pozivajuæeg programa (odnosno rekurzivno
+unatrag po stablu poziva), pa se savjetuje \emph{izniman oprez\/} ako
+se isti registar pozivatelja ve¾e na vi¹e registara makroa. Iako je
+takav kôd neèitak i podlo¾an gre¹kama, njegova je semantika
+jednoznaèno odreðena jer je \RAM\ stroj sekvencijalan.
+
+Od svakog se \emph{pristojnog} \MaMa\ programa ipak zahtijeva da na
+kraju izvr¹avanja nije promijenjena poèetna vrijednost niti jednog
+vezanog ne-izlaznog (ne-\texttt{\%}$0$) registra, osim ako to nije
+njegova standardna semantika.
+
+Programi koji taj zahtjev ne po¹tuju ne mogu biti dijelom biblioteke
+standardnih makroa (\bso) i trebali bi detaljno obavijestiti korisnika
+o:
+\begin{itemize}
+\item broju formalnih parametara
+\item dozvoljenim vrijednostima stvarnih parametara
+\item kada se i kako kojem ulaznom vezanom registru mo¾e nepovratno
+  promijeniti poèetna vrijednost
+\end{itemize}
+
+\subsubsection{primjeri \MaMa\ programa}
+
+Zavirite u poddirektorij \texttt{lib} za real-life primjere \MaMa\
+programa.  Isti se nalaze u datotekama s ekstenzijom \texttt{.MMs} kao
+dio \bso\ biblioteke ili kao dodaci.
+
+Npr.\ moguæe je napisati program \texttt{SET}, koji æe slu¾iti kao
+makro ¹to postavlja arbitrarni registar na arbitrarnu konstantu ili
+vrijednost nekog drugog registra, iako je kod nas minimalizam ustupio
+mjesto efikasnosti ugraðene komande.  Pogledajte na reèeno mjesto za
+dokaz da dodavanjem te komande u jezik nismo nimalo poveæali njegovu
+prija¹nju snagu.
+
+\subsection{\MaMa\ bytecode verzija 0}
+
+\hskip -0.61ptBytecode je platformski neovisna binarna reprezentacija
+\MaMa\ programa, u fajlu s obaveznom ekstenzijom
+\texttt{.MMb}\footnote{\MaMa\ bytecode} i duljine najvi¹e \texttt{2}
+\texttt{GB}, koju izvr¹ava \MaMa\ interpreter.  Bytecode koristi
+\emph{nativni} byte-ordering raèunala na kojemu je kreiran, ¹to je
+naznaèeno u deskriptoru i to interpreter mora uva¾iti pri dohvatu
+cjelobrojnih podataka.
+
+U binarnom prikazu cjelobrojnih rijeèi koristit æemo konvenciju da su
+slijeva nadesno bitovi navedeni od najvi¹e do najmanje znaèajnog.
+
+\subsubsection{deskriptor}
+Deskriptor bytecodea poèetni je dio bytecodea, duljine $64$ bita, i
+formiran je kao $4+4$ okteta (oktet $=$ $8$ bitova) kako slijedi:
+\begin{enumerate}
+\item[$\mathbf{0}$]\verb+ESDi iiii  iiii iiii  iiii iiii  iiii iiii+
+\item[$\mathbf{4}$]\verb+VVVV rrrr  rrrr rrrr  rrrr rrrr  rrrr rrrr+
+\end{enumerate}
+pri èemu je rijeè od prvih $4$ okteta spremljena u little-endian byte
+orderingu, a znaèenje pojedinih polja bitova je ovakvo:
+\begin{enumerate}
+\item[\texttt{E}] 1 akko je nativni big-endian byte-ordering, 0 akko
+  je to little-endian
+\item[\texttt{S}] 1 akko je \SYSTEM{$3$}, 0 akko je \SYSTEM{$2$}
+\item[\texttt{D}] 1 akko su pristutne debugging informacije u vidu
+  oznaka linija izvornog kôda, 0 akko je bytecode namijenjen za
+  neinteraktivno izvr¹avanje
+\item[\texttt{i}] $29$ \texttt{i}-bitova je broj instrukcija bytecodea
+\item[\texttt{V}] $\mathtt{(0000)_2}\le\mathtt{VVVV}\le\mathtt{(1111)_2}$
+  verzija bytecodea
+\item[\texttt{r}] $28$ \texttt{r}-bitova broj je registara, ne
+  ukljuèujuæi \texttt{\%\%}
+\end{enumerate}
+
+Svi se ostali podaci mogu dobiti od sistema (ukupna velièina bytecode
+fajla) ili izraèunati na temelju ovih.  Razlog za fiksiranjem byte
+orderinga prve $32$-bitne rijeèi je taj ¹to interpreter mora odmah
+ustanoviti byte-ordering bytecodea, a to mo¾e akko se zna toèna
+lokacija na kojoj taj podatak pi¹e, ¹to je najlak¹e postiæi ako se
+zahtijeva proizvoljni, ali toèno odreðeni byte ordering (little-endian
+odabran je kao prevladavajuæi na PC platformama).
+
+Ovisno o vrijednosti \texttt{D} flaga, iza deskriptora slijedi
+instrukcijski blok ($\mathtt{D}=0$) ili niz od $I$ debugging zapisa
+($\mathtt{D}=1$), gdje je $I$ broj instrukcija bytecodea.
+
+\subsubsection{debugging zapisi}
+
+Svaki debugging zapis je sastavljen od $4+4=8$ okteta.  Prva $4$
+okteta èine file pointer na korespodentnu instrukciju, a druga $4$
+okteta su broj linije, poèev od $1$, izvornog fajla koja je tu
+instrukciju producirala.  Oba dijela imaju vodeæi bit $0$.
+
+\subsubsection{instrukcijski blok}
+
+Instrukcijski blok je niz svih instrukcija bytecodea.  Instrukcijski
+blok slijedi iza niza debugging zapisa (ako ih ima), odnosno iza
+deskriptora.
+
+Svaka instrukcija ima zaglavlje (\textsl{header\/}) instrukcije
+[\textsf{ 4 okteta }].  Vodeæa $4$ bita instrukcijskog headera
+odluèuju toèno jednu od instrukcija ovako:
+
+\texttt{GOTO}:\hfill\verb+1??? ????  ???? ????  ???? ????  ???? ????+\\
+$31$ \texttt{?}-bitova je adresa bezuvjetnog skoka (file pointer na
+instrukcijski zapis).
+
+\texttt{CALL}:\hfill\verb+010d dddd  dddd dddd  dddd dddd  pppp pppp+\\
+Iza headera slijedi \texttt{CALL} blok, èije je ustrojstvo, kao i
+znaèenje pojedinih polja bitova u headeru opisano ni¾e u zasebnom
+odjeljku.
+
+\texttt{SET}:\hfill\verb+011C ????  ???? ????  ???? ????  ???? ????+\\
+Bit \texttt{C} je $1$ ako iza headera slijedi $64$-bitna konstanta,
+inaèe je $0$ te iza headera slijedi $32$-bitni kôd registra (na donjih
+$28$ bitova, ostalo su nule).  Preostalih $28$ bitova headera kôd su
+registra kojeg treba setirati.
+
+\DECK:\hfill\verb+00+$\mathtt{1}_\mathtt{0}^\mathtt{1}$\verb+ ????  ???? ????  ???? ????  ???? ????+\\
+Preostalih $28$ bitova adresa su registra na kojemu \DECK\ djeluje.
+Neposredno iza ovog headera slijedi rijeè od $4$ okteta kao file
+pointer na instrukcijski header cilja uvjetnog skoka.  Vodeæi bit te
+rijeèi ima jednaku vrijednost kao \texttt{S} bit deskriptora
+(semantika instrukcije potpuno je sadr¾ana u njenom kôdu).
+
+\texttt{INC}:\hfill\verb+0001 ????  ???? ????  ???? ????  ???? ????+\\
+Preostalih $28$ bitova èine adresu registra na kojemu \texttt{INC}
+djeluje.
+
+\texttt{rezervirano}:\hfill\verb+0000 ????  ???? ????  ???? ????  ???? ????+\\
+Ovo je rezervirani instrukcijski header.  Uzrokuje run-time error pri
+interpretiranju.  Namijenjen je buduæim pro¹irenjima \MaMa\ jezika.
+
+\subsubsection{\texttt{CALL} detalji}
+
+Znaèenje pojedinih polja bitova u headeru \texttt{CALL} insrukcije je
+sljedeæe:
+\begin{enumerate}
+\item[\texttt{P}] duljina imena programa, mo¾e biti $0$ ($8$ bitova)
+\item[\texttt{D}] ukupna duljina \texttt{CALL} bloka nakon imena
+  programa ($21$ bit)
+\end{enumerate}
+
+\texttt{CALL} blok slijedi neposredno iza headera pripadne instrukcije
+i sastoji se od:
+\begin{enumerate}
+\item opcionalnog imena programa (makroa), bez terminatora
+\item jednog ili vi¹e zapisâ, od kojih je svaki ili $32$-bitni kôd
+  registra ili $64$-bitna konstanta.  Svakom zapisu prethodi jedan
+  oktet, koji je $0$ ako iza njega slijedi kôd registra, odnosno $1$
+  ako slijedi konstanta
+\end{enumerate}
+
+Razlog: zbog razlièitih duljina binarnih prikaza dvaju tipova
+argumenata (kôd registra ili konstanta) nu¾no je naznaèiti unaprijed
+¹to se mora i¹èitati.
+
+\subsubsection{napomene}
+\label{s:bytec:nap}
+
+Prilikom kompilacije sve se labele prevode na apsolutne file
+pointere.  Labelama \texttt{::} i \texttt{:!} pridru¾uju se redom
+pointeri $(\mathtt{7F\,FF\,FF\,FF})_{16}$ i
+$(\mathtt{00\,00\,00\,00})_{16}$, koji pokazuju na zadnji moguæi,
+odnosno nulti byte bytecodea.  Kako na tim adresama ne mogu biti
+instrukcijski headeri (jer je adresa prevelika za $4$-oktetni header
+ili pokazuje na deskriptor) to je interpreteru jasno da se ne radi o
+validnim pointerima, veæ oznakama za posljednju, odnosno tekuæu liniju
+programskog kôda.
+
+©tovi¹e, nije potrebno niti emitirati $n$-tu i ($n\!+\!1$)-vu
+instrukciju kad je njihova jedina svrha omoguæiti legalan izlaz iz
+programa ne mijenjajuæi vrijednost niti jednog registra.  Interpreter
+je slobodan pri ``skoku'' na file pointer koji kodira labelu
+\texttt{::} jednostavno prekinuti izvoðenje \MaMa\ programa.
+\hr
+
+Prilikom kompilacije raèunaju se translacijske tablice za registre.
+To znaèi da se smanjuju memorijski zahtjevi (i sprjeèavaju zlonamjerni
+useri da unesreæe sustav neèim tipa ``\CALL{rekurzija}
+\texttt{\%100000000}'') tako da se:
+\begin{enumerate}
+\item[$\mathbf{1}$] zapamte se $0$ i svi kori¹teni indeksi registara
+\item[$\mathbf{2}$] neka su $i,j$ zapamæeni indeksi, $k$
+  proizvoljan,  tada vrijedi:\\
+  $\big[(i<k<j\Rightarrow k$ nije zapamæen$)\ \wedge\
+  (j-i>1)\big]\ \Longrightarrow\ j=i+1$
+\item[$\mathbf{3}$] ponavlja se postupak pod $\mathbf{2}$
+\end{enumerate}
+
+Ovo je samo kriptièan zapis onoga ¹to se trivijalno posti¾e sortiranim
+asocijativnim poljem u kojemu se nalazi $0$ i pri nailasku na njih
+ubacuju ostali registri kao kljuè, te se potom slijedno, poèev od $0$,
+asociraju stare vrijednosti s novom, svaki put za $1$ veæom od
+prethodne.
+
+Zbog toga je neobièno va¾no sve ulazne registre dr¾ati kontinuiranim
+(npr.\ od $1$ do $k$, kako i definicija \RAM\ stroja nala¾e), i svaki
+spomenuti barem jednom u tijelu programa!
+
+Pomoæni registar \texttt{\%\%} u instrukcijske se headere i
+\texttt{CALL} blokove zapisuje kao binarni prikaz broja
+$(\mathtt{0F\,FF\,FF\,FF})_{16}=2^{28}-1$.  Interpreter koristi
+informaciju iz deskriptora o stvarnom broju registara kako bi tu
+vrijednost tijekom izvoðenja pridijelio ovim dvama oznakama.
+\hr
+
+Cjelokupna struktura debugging bytecodea prikaziva je kao:
+\begin{enumerate}
+\item deskriptor \textsf{[ 8 okteta ]}
+\item debugging zapisi \textsf{[ 8-align ]}
+\item instrukcijski blok
+\end{enumerate}
+
+Primijetimo da je u debugging bytecodeu lako naæi pripadnu liniju
+izvornog kôda tekuæe instrukcije ili instrukciju koja pripada zadanoj
+liniji izvornog kôda (ili prvoj izvr¹ivoj liniji nakon nje), npr.\
+binarnim pretra¾ivanjem.
+
+Debugging zapisi omoguæuju i baratanje bytecodeom po principu
+sluèajnog pristupa instrukcijama, za ¹to ne zahtijevaju nu¾no dodatnu
+radnu memoriju.
+
+Cjelokupna struktura normalnog bytecodea prikaziva je kao:
+\begin{enumerate}
+\item deskriptor \textsf{[ 8 okteta ]}
+\item instrukcijski blok
+\end{enumerate}
+
+\subsection{kompatibilnost\dots}
+
+Po¾eljno je da sav softver bude ¹to je vi¹e moguæe backward (unatrag)
+kompatibilan, dok god to ne komplicira ili ne unazaðuje suvi¹e njegov
+design.
+
+\subsubsection{\dots jezika}
+
+Sintaksa i semantika \MaMa\ programskog jezika u verziji $n$ bit æe
+podr¾ana u svim \MaMa\ implementacijama $(n\!+\!1)$-ve verzije jezika.
+
+To znaèi da æete u paketu koji implementira npr.\ $4$-tu verziju
+jezika moæi koristiti, izravno ili putem nekih komandnih opcija, jezik
+u verziji $3$, ali isti neæete nu¾no moæi koristiti u paketu baziranom
+na jeziku verzije $5$.
+
+Od ovog se pravila mo¾e odstupiti ukoliko su specifikacijski zahtjevi
+toliko razlièiti izmeðu sukcesivnih verzija da bi po¹tivanje ovog
+pravila iziskivalo distribuciju dvaju nezavisnih aplikacija, za staru
+i novu verziju.  Ako se od pravila odstupa, nu¾no je i staru verziju
+paketa ostaviti dostupnom.
+
+\subsubsection{\dots bytecodea}
+
+Reèeno vrijedi i za bytecode, tj.\ bytecode verzije $m$ moæi æe se
+izvr¹avati na \MaMa\ implementaciji èija specifikacija opisuje
+bytecode verzije $m\!+\!1$.
+
+Generiranje bytecodea neposredno prethodne verzije po¾eljna je opcija,
+ali nije nu¾na.  Program mo¾e zahtijevati, direktivom
+\texttt{VERSION}, generiranje bytecodea neke od prethodnih verzija,
+ali kompajler to ne mora prihvatiti.  U tom sluèaju kompajler je du¾an
+prekinuti kompilaciju.
+\newpage
+\section{manual}
+\label{s:manual}
+
+U ovoj se sekciji bavimo na¹im \MaMa\ sustavom iz ``ptièje
+perspektive'', tj.\ interaktivnim aspektima korisniku neposredno
+vidljivih elemenata designa.
+
+Ovaj dio dokumentacije slu¾i kao priruènik korisniku za instaliranje i
+redovitu uporabu \MaMa\ softverskog paketa.  Podrazumijeva se da je
+korisnik upoznat sa sadr¾ajem svih prethodnih poglavlja.
+
+\subsection{quick start}
+
+\dots ipak nije za nestrpljive!  Da biste uspje¹no koristili \MaMa\
+paket, savjetuje se dobro prouèiti sljedeæa poglavlja!
+
+\subsubsection{sistemski zahtjevi}
+
+\MaMa\ ne tra¾i mnogo.  Za èitanje dokumentacije trebat æe vam
+\textsf{PDF} ili \textsf{DVI} preglednik.  Dodatni zahtjevi napomenuti
+su u instalacijskoj dokumentaciji.
+
+\subsubsection{pribavljanje}
+
+\MaMa\ je dostupna na Webu \url{https://github.com/venovako/MaMa}\\
+Svaka \MaMa\ distribucijska arhiva imenovana je
+\texttt{MaMa}$LBVD$\texttt{.}$xxx$, gdje su:
+\begin{enumerate}
+\item[$L$] je verzija \MaMa\ jezika, poèev od $0$
+\item[$B$] je verzija \MaMa\ bytecodea, poèev od $0$
+\item[$V$] je, za dane $L$ i $B$, release verzija
+\item[$D$] je oznaka sadr¾aja paketa i ciljane platforme
+\item[$X$] $xxx$ je ekstenzija, ovisna o $D$
+\end{enumerate}
+$L$, $B$, $V$ i $D$ svaki su jedan alfanumerièki znak.
+
+Varijante pod $D$ obja¹njene su na Webu i podlo¾ne promjenama.
+Pa¾ljivo odaberite distribuciju (installer, source\dots) i obavezno
+provjerite checksum!
+
+\subsubsection{kompilacija}
+
+Ovo vas ne zanima ako ste skinuli installer.  Imate li potrebu sami
+kompilirati \MaMa\ paket, budite sigurni da posjedujete funkcionalne:
+\begin{itemize}
+\item ISO C++ kompajler, standardne biblioteke i prikladni linker
+\item recentnu \LaTeX\ distribuciju, ¾elite li modificirati
+  dokumentaciju
+\item build sistem stvar je implementacije i podlo¾an je promjenama;
+  za detalje prouèite odgovarajuæu dodatnu dokumentaciju u paketu
+\item za kompilaciju GUI komponenti prouèite instalacijsku dokumentaciju
+\end{itemize}
+
+Otpakirajte source distribuciju, pozicionirajte tekuæi direktorij
+va¹eg shella na poèetni distribucijski direktorij, te prouèite
+\texttt{INSTALL.txt} dokument.  U njemu æe biti detaljno naznaèeno
+koje fajlove i kako morate modificirati, te koji build sistem
+upotrijebiti da biste kompajlirali i instalirali paket.
+
+\subsubsection{instalacija}
+
+Èitav \MaMa\ paket sastoji se od \{ \texttt{bin}, \texttt{doc},
+\texttt{etc}, \texttt{lib}, \texttt{src} \} poddirektorija smje¹tenih
+u direktorij po izboru.  Defaultno je to
+\texttt{C:$\!\mathtt{\backslash}$MaMa} na Windowsima i
+\texttt{/opt/MaMa} na *nixu, ako korisnik nije izmijenio platformske
+postavke prilikom kompilacije.  Taj se direktorij zove
+\texttt{MAMA\_HOME} u daljnjem tekstu.  Kako bi programi iz paketa
+znali gdje su instalirani, korisnik (na njemu dostupan naèin) postavi
+environment varijablu \texttt{MAMA\_HOME} na glavni instalacijski
+direktorij.  Ne uèini li to, smatra se da ta varijabla ima reèenu
+default vrijednost.
+
+Path separatori i delimiteri za danu platformu pode¹avaju se, kako je
+veæ opisano, prilikom kompilacije.  Najèe¹æe su jedno od:
+\begin{center}
+\vskip 0.555ex
+\begin{tabular}{|c|c|c|}
+\hline
+& separator & delimiter\\
+\hline
+Windows & $\mathtt{\backslash}$ & \texttt{;}\\
+*nix & \texttt{/} & \texttt{:}\\
+\hline
+\end{tabular}
+\vskip 0.555ex
+\end{center}
+
+Sadr¾aj pojedinih direktorija (uz nu¾ni mutatis mutandis za Windowse):
+\begin{itemize}
+\item\texttt{bin}\hskip 1 em saèinjavaju izvr¹ni programi \mama\ i
+  \mamac, te GUI komponente
+\item\texttt{doc}\hskip 1 em sadr¾i barem ovaj dokument u \textsf{DVI}
+  i \textsf{PDF} formatu
+\item\texttt{etc}\hskip 1 em tvore razni primjeri i ostalo
+\item\texttt{lib}\hskip 1 em sadr¾i \bso\ (biblioteku standardnih
+  makroa) i dodatne primjere u bytecode i izvornom obliku
+\item\texttt{src}\hskip 1 em izvorni kôdovi izvr¹nih programa
+\end{itemize}
+
+Smatramo da je postavljena i environment varijabla
+\texttt{MAMA\_PATH}, ili ako nije, da sadr¾i kao defaultnu vrijednost
+\texttt{\%MAMA\_HOME\%$\mathtt{\backslash}$lib} na Windows, odnosno
+\texttt{\$MAMA\_HOME/lib} na *nix sustavu.
+
+\subsubsection{kori¹tenje}
+
+Detaljniji opis je u poglavljima o interpreteru, kompajleru i GUI
+IDEu.
+
+\subsubsection{troubleshooting}
+
+Use the source, Luke!  Ako ba¹ zapne, zatra¾ite\dots
+
+\subsubsection{support}
+
+Pitanja i bug-reporte molimo slati na
+\url{mailto:venovako@gmail.com}
+
+\subsection{\mamac\ -- \MaMa\ kompajler}
+
+\mamac\ je kompajler koji iz tekstualnog \MaMa\ programa producira
+ekvivalentan \MaMa\ bytecode.  Poziva se, uz opcionalne flagove,
+ovako:\\[0.555ex]
+\mamac\ \ \texttt{[-v]}\ \ \texttt{[-g]}\ \ \textsl{datoteka\_izvornog\_kôda}\hfill gdje je:
+\begin{itemize}
+\item\texttt{-v}\hskip 1em\textsl{verbose} -- ispisuje korake i
+  implementacijski definirarnu statistiku
+\item\texttt{-g}\hskip 1em\textsl{debugging} -- stvara debugging bytecode
+\item\hskip 2em\textsl{default} -- ispisuje samo poruke o
+  sintaktièkim i drugim gre¹kama
+\end{itemize}
+
+Kompajler je du¾an prekinuti kompilaciju na prvoj sintaktièkoj gre¹ki,
+te obavijestiti korisnika o njoj i eventualnim moguænostima oporavka
+od nje.
+
+Kompajler smije promijeniti stanje filesistema ako i samo ako je
+kompilacija protekla bez gre¹aka i vanjskih terminirajuæih signala.
+
+\subsubsection{pretraga datoteka}
+
+\textsl{datoteka\_izvornog\_kôda\/} apsolutni je ili relativni path do
+fajla koji sadr¾i izvorni program.  Ako datoteka danog imena postoji,
+kompajlira se, a dobiveni se bytecode sprema u fajl imenovan tako da
+se uzme ime datoteke izvornog kôda i promijeni ekstenzija u
+\texttt{.MMb}.  \emph{Ako nije nu¾no drugaèije postupiti, uvijek
+postavite ekstenziju\/} \texttt{.MMs} \emph{datoteci izvornog kôda\/}!
+
+Iz reèenog slijedi da se bytecode i izvorni kôd defaultno uvijek
+nalaze u istom direktoriju.  Radi ispravnog pona¹anja paketa u
+cjelini, to se \emph{vrlo preporuèa\/}!
+
+\subsubsection{ispis}
+
+Retke i stupce (kolone) ispisa imenujemo slijedno od
+$0$. Podrazumijevamo da ekran ima barem $80$ kolona.  Dajemo format
+poruke o sintaksnoj gre¹ki:
+
+{\scriptsize\ttfamily
+01234567890123456789012345678901234567890123456789012345678901234567890123456789\\
+SYNTAX ERROR @ LINE <**line**>~:~<neobavezni kratki opis gre¹ke>\\
+<**line**> = broj linije u izvornom kôdu, poèev od 1 i poravnat desno u
+polju od 10 kolona\par}
+
+Statistika u \textsl{verbose\/} re¾imu je implementacijski zavisna.  U
+pravilu sadr¾i broj sintaksnih elemenata (linija, pojedninih tipova
+instrukcija), velièinu i byte ordering bytecodea, broj registara i
+velièinu pojedinih bytecode sekcija, vrijeme poèetka i zavr¹etka,
+odnosno trajanje kompilacije\dots
+
+\subsection{\mama\ -- \MaMa\ interpreter}
+
+\mama\ je interpreter \MaMa\ bytecodea.  Poziva se sa sljedeæim
+parametrima:\\[0.555ex]
+\mama\ \ \texttt{[-v|-s]}\ \ \textsl{ime\_MaMa\_programa}\ \ \textsl{registri}
+\begin{itemize}
+\item\texttt{-v}\hskip 1em\textsl{verbose} -- ispisuje svaki korak
+  izraèunavanja
+\item\texttt{-s}\hskip 1em\textsl{step-by-step} -- kao pod
+  \texttt{-v}, ali èeka korisnikovu reakciju nakon svakog koraka
+  (idealno za debugging i edukacijske svrhe)
+\item\hskip 2em\textsl{default} -- ispisuje rezultat iz registra $0$
+\item\textsl{ime\_MaMa\_programa} -- bez ekstenzije,
+  istovjetno \texttt{CALL} argumentu
+\item\textsl{registri} -- argumenti za vezanje ili punjenje
+  registara (v.\ kasnije)
+\end{itemize}
+
+Postoji i \textsl{quiet} re¾im rada, u kojem se vraæa samo status
+nakon (ne)uspje¹nog izvr¹avanja.  Ukljuèuje se automatski i jedino
+prilikom makro poziva.
+
+\subsubsection{izvr¹avanje: korisnièki i makro kontekst}
+
+\textbf{Va¾no}: Ovdje se opisuju rekurzivni pozivi interpretera kao
+pozivi izvr¹nog \mama\ programa.  Implementacija je slobodna interno
+realizirati rekurzivne pozive bilo kako, dok god je oèuvano znaèenje
+korisnièkog i makro konteksta.
+
+Poziv nove instance interpretera iz veæ postojeæe moguæ je jedino u
+makro, a iz korisnièkog okru¾enja u korisnièkom kontekstu.  Dakle,
+kontekst se mo¾e odrediti i ustanovljuje se prije parsiranja komandne
+linije.
+
+Potom se ispituju neobavezne opcije, zatim se pronalazi program, o
+èemu vi¹e u sljedeæem odjeljku, a potom se preostali argumenti
+komandne linije ve¾u na ili pune registre nove instance \MaMa\
+stroja kako slijedi:
+\begin{itemize}
+\item Ako je rijeè o korisnièkom kontekstu, tada ili nema vi¹e
+  argumenata, ili su svi preostali argument nenegativne cjelobrojne
+  konstante u bazi $8$, $10$ ili $16$, i njima se redom popunjavaju
+  input registri (\texttt{\%}$1\cdots$\texttt{\%}$k$) stroja.
+\item U makro kontekstu mora preostati bar jo¹ jedan argument.  Prvi
+  meðu njima mora biti \textsl{registar}, a ostali, ako ih ima, ili su
+  konstante ili registri.  Podrazumijeva se \textsl{quiet} re¾im rada
+  nove instance, te se vr¹i vezanje registara, kako je to opisano
+  semantikom \texttt{CALL} instrukcije u \ref{s:prog:call}.
+\end{itemize}
+
+U oba sluèaja neodgovarajuæi argumenti impliciraju neuspje¹an
+zavr¹etak rada nove, i rekurzivno svih pozivajuæih instanci
+interpretera, ako postoje.
+
+\subsubsection{pronala¾enje programa}
+
+Prvom obaveznom argumentu komandne linije
+(\textsl{ime\_MaMa\_programa\/}) dodaje se ekstenzija \texttt{.MMb} i
+poku¹ava otvoriti tako imenovani fajl.  Ako se to ne uspije, taj se
+fajl tra¾i redom u direktorijima navedenim u environment varijabli
+\texttt{MAMA\_PATH}.  Staje se na prvom uspje¹nom otvaranju fajla,
+koji se izvr¹ava.  Ne naðe li se bytecode niti u jednom direktoriju,
+interpreter neuspje¹no zavr¹ava rad.
+
+Iz reèenog slijedi da se interpreter ne brine o tome je li bytecode
+sinkroniziran s izvornim kôdom -- to je iskljuèivo korisnikova du¾nost!
+
+Default \texttt{MAMA\_PATH} varijable ukazuje na to da je razumno u
+njoj imati \bso.
+
+\subsubsection{ispis}
+
+Svi ispisi vr¹e se na \texttt{stdout} (osim gre¹aka, koje se ispisuju
+na \texttt{stderr}).  Kod \texttt{-v} ili \texttt{-s} opcije
+interpreter oèekuje debugging bytecode (u protivnom neuspje¹no prekida
+rad) i u direktoriju bytecodea datoteku izvornog kôda (ako je nema,
+naredbe se ispisuju generièki).
+
+Ako za bytecode postoji reèeni izvorni kôd, tada se kao sljedeæa
+instrukcija ispisuje stvarna linija sljedeæe instrukcije.  Ako to nije
+sluèaj, onda se sljedeæa instrukcija konvertira u niz znakova, pri
+èemu se eventualni file pointeri iz tijela instrukcije zamijenjuju
+labelama konstruiranima kao \texttt{:} koju slijedi redni broj
+instrukcije u bytecodeu.  Sve su instrukcije takoðer labelirane svojim
+rednim brojem.  Specijalne oznake za \texttt{::} i \texttt{:!} labele
+poprimaju upravo tu tekstualnu reprezentaciju.
+
+Uz instrukcije, moraju se ispisati i njihovi uèinci na registarsku
+traku u takvom formatu da je moguæe jednoznaèno rekonstruirati
+vrijednost u svakom kori¹tenom registru.
+
+U defaultnom re¾imu rezultat se ispisuje u toèno jednoj liniji i
+kao dekadska vrijednost nultog registra, poravnata desno u polju od
+prvih $20$ kolona.
+
+Retke i stupce (kolone) ispisa imenujemo slijedno od $0$.
+Podrazumijevamo da ekran ima barem $80$ kolona.  Format ispisa
+u \textsl{verbose} re¾imu, kao i u \textsl{step} re¾imu, do na
+interakciju s korisnikom, koju opisujemo naknadno, je:
+\hr
+
+{\scriptsize\ttfamily
+01234567890123456789012345678901234567890123456789012345678901234567890123456789\\
+\# MaMa started @ `ctime() output`\\
+<prazna linija>\\
+PROGRAM ime\_MaMa\_programa\\
+ARITY k \# k je broj argumenata ove instance danog MaMa\_programa\\
+<prazna linija>\\
+\% <broj registara, ne raèunajuæi \%\%>\\
+:~<broj instrukcija>\\
+<prazna linija>\\
+SYSTEM s \# s = 2 ili s = 3\\
+VERSION v \# 0 <= v <= 15\\
+<prazna linija>\\
+<poèetno stanje registara>\\
+\# ponavljaj 1 ili vi¹e puta\dots\\
+<prazna linija>\\
+<instrukcija koja se ima izvr¹iti>\\
+\# opcionalna interakcija u step modu\\
+<stanje registara nakon prethodne instrukcije>\\
+\# \dots kraj ponavljanja\\
+<prazna linija>\\
+<zavr¹no stanje registara>\\
+RESULT <rezultat>\par}
+
+{\scriptsize\ttfamily
+01234567890123456789012345678901234567890123456789012345678901234567890123456789\\
+\# komentar, takoðer slu¾i za interaktivne upite korisniku i njegove odgovore\par}
+\pagebreak
+{\scriptsize\ttfamily
+      01234567890123456789012345678901234567890123456789012345678901234567890123456789\\
+\verb+%<reg___i> <20 col deci 64-bit>+\\
+\verb+<reg___i> = i u dekadskom prikazu, ili %, ako se radi o privremenom registru+\\
+<20 col deci 64-bit> = 20 kolona rezerviranih za prikaz nepredznaèenog 64-bitnog\\
+cijelog broja u bazi 10 kao vrijednosti u pripadnom registru\hr\par}
+
+Oznake registara i pripadne vrijednosti u ispisu stanja poravnate su
+desno u poljima od $10$, odnosno $20$ kolona, respektivno.  U ispisu
+stanja sudjeluju \emph{samo oni} registri koji su spomenuti u
+prethodno izvr¹enoj instrukciji.  Poèetno i zavr¹no stanje registara
+prikazuju stanja svih registara.
+
+Linije izvornog kôda prenose se doslovno kad je to moguæe, do na
+uklanjanje eventualnih zavr¹nih bjelina.  Generièki ispisane
+instrukcije labelirane su (na reèeni naèin), kapitaliziranog imena, a
+cjelobrojni argumenti i reference registara ispisuju se u bazi $10$.
+Prije ispisa instrukcijske linije, generièki labelirane ili izvorne, u
+polju od prvih $10$ kolona, poravnato desno, ispisuje se pripadni broj
+linije izvornog kôda. Svi ti elementi odvojeni su po jednom bjelinom.
+
+Rezultat je dekadska vrijednost nultog registra, ispisana uz desno
+poravnanje u polju od $20$ kolona.
+
+\subsubsection{interakcija}
+
+Interpreter u \texttt{-s} modu interagira s korisnikom, ili
+direktno, vlastitim suèeljem, ili nekom GUI ljuskom koja po¹tuje ni¾e
+opisani protokol.
+
+Nakon jednog ciklusa, kako je naznaèeno u gornjem odjeljku, ispi¹e se
+komentirani upit:
+
+{\scriptsize\ttfamily
+      01234567890123456789012345678901234567890123456789012345678901234567890123456789\\
+\verb!Step [[+/-]i] | setPc [[+/-/.]a] | %[...] [value] ?!\par}
+
+Iza upitnika slijedi jedna praznina i korisnikov odgovor kao jedna od
+naredbi (punim imenom ili slovom kapitalizirane kratice ili samo
+\texttt{<Enter>} za \texttt{step}):
+\begin{enumerate}
+\item[\texttt{S}] \texttt{step [[+/-]i]}
+\begin{itemize}
+\item defaultni je korak $1$, ako ga se ne postavi drugaèije
+\item bez argumenta smatra se ``\texttt{step} \textsl{defaultni\_korak}''
+\item $\mathtt{i}\!>\!0$\ \dots\ izvr¹i bez zaustavljanja sljedeæih
+  \texttt{i} ciklusa, tj.\ jednokratno postavi korak na \texttt{i},
+  izvr¹i \texttt{i} ciklusa, resetira korak na trenutni default, te se
+  zaustavi uz navedeni upit
+\item $\mathtt{i}=0$\ \dots\ izvr¹i bez zaustavljanja sve naredne
+  cikluse (\textsl{continue\/})
+\item $\mathtt{i}<0$\ \dots\ postavi defaultni korak na $|\,i\,|$,
+  izvr¹i toliko ciklusa bez zaustavljanja i stane uz navedeni upit
+\end{itemize}
+\item[\texttt{P}] \texttt{setpc [[+/-/.]a]}
+\begin{itemize}
+\item bez argumenta prekida rad interpretera
+\item \texttt{+a} \dots\ inkrementira registar-brojaè
+  (programsko brojilo) za \texttt{a}
+\item \texttt{-a} \dots\ dekrementira registar-brojaè
+  (programsko brojilo) za \texttt{a}
+\item ako je \texttt{a} nepredznaèen validni redni broj instrukcije
+  kao cjelobrojna konstanta jezika C u bazi $8$, $10$ ili $16$,
+  registar-brojaè (a.k.a.\ programsko brojilo -- program counter)
+  postavlja se na \texttt{a}
+\item \texttt{.a} \dots\ skaèe na instrukciju kojoj pripada prva
+  izvr¹iva linija izvornog kôda rednog broja veæeg ili jednakog \texttt{a}
+\end{itemize}
+\item[\texttt{\%}] \texttt{\%[\dots] [value]}
+\begin{itemize}
+\item bez argumenata ponavlja ispis vrijednosti svih registara
+\item\texttt{\dots} validna adresa registra, kao nenegativna
+  cjelobrojna konstanta jezika C u bazi $8$, $10$ ili $16$, ili
+  \texttt{\%}
+\item bez zadnjeg argumenta ispisuje vrijednost referenciranog
+  registra
+\item\texttt{value} validna vrijednost registra kao nenegativna
+  cjelobrojna C konstanta u bazi $8$, $10$ ili $16$
+\item sa zadnjim argumentom prisutnim postavlja vrijednost
+  referenciranog registra na \texttt{value}
+\end{itemize}
+\end{enumerate}
+
+Poja¹njenje uz sve naredbe \texttt{\%}-tipa (koje barataju s
+registrima): njihovo uspje¹no izvr¹avanje rezultira ponovnim
+interaktivnim upitom (mo¾ete odrediti da se i kako nastavi izvr¹avanje
+programa ili nastaviti rad s registrima).
+
+\subsection{\mamut\ -- \MaMa\ GUI}
+
+\mamut\ je aplikacija koja slu¾i kao rudimentarni IDE.
+
+\subsubsection{znaèajke}
+
+\mamut\ posjeduje najosnovnije funkcionalnosti IDEa:
+\begin{itemize}
+\item ureðivanje source (izvornog) kôda
+\item bytekompajliranje izvornog kôda
+\item selektiranje sintaksnih gre¹aka u izvornom kôdu
+\item pode¹avanje okoline (environment varijabli, tekuæeg
+  direktorija\dots) i prosljeðivanje argumenata za izvr¹avanje \MaMa\
+  programa
+\item osnovne moguænosti debuggiranja, kao ¹to su:
+\begin{itemize}
+\item konzolni prozor za izravnu komunikaciju s interpreterom
+\item grafièki prikaz i izmjena vrijednosti sviju kori¹tenih registara
+\item grafièko upravljanje izvr¹avanjem u \textsl{step\/} re¾imu
+\item selektiranje sljedeæe instrukcije izvornog kôda u \textsl{step\/} re¾imu
+\end{itemize}
+\end{itemize}
+
+\subsubsection{detalji}
+
+\mamut\ pokreæe kompajler, odnosno interpreter, kao subprocese s
+preusmjerenim ulazom i izlazom na od roditelja kontrolirane streamove.
+
+Preporuèena rezolucija ekranskog prikaza je $800\times 600$ i veæa.
+
+\subsection{\bso\ -- biblioteka standardnih makroa}
+
+\bso\ saèinjavaju najkorisniji \MaMa\ programi za probleme elementarne
+aritmetike i opæe namijene.  \bso\ jamèi da je svaki njen program:
+\begin{itemize}
+\item evaluator neke totalne (rekurzivne) funkcije
+\item optimalne vremenske slo¾enosti
+\item stabilan u smislu da vrijednosti input registara po zavr¹etku
+  programa nisu promijenjene, osim ako je to standardna semantika
+\end{itemize}
+
+Zasad su u planu mnoge funkcije, koje uglavnom odgovaraju skupu
+razumnih \textsf{CISC} asemblerskih instrukcija.  Minimalna
+implementacija \bso a \emph{mora} imati sve sljedeæe makroe
+implementirane s ovdje zadanom semantikom!
+\begin{itemize}
+\item\texttt{MIN}\ \dots\ $\mathtt{\%0:=\min\,\{\,\%1,\%2\,\}}$
+\item\texttt{MAX}\ \dots\ $\mathtt{\%0:=\max\,\{\,\%1,\%2\,\}}$
+\item\texttt{ADD}\ \dots\ $\mathtt{\%0:=\%1+\%2}$
+\item\texttt{SUB}\ \dots\ $\mathtt{\%0:=\max\,\{\,\%1-\%2,0\,\}}$
+\item\texttt{DST}\ \dots\ $\mathtt{\%0:=|\,\%1-\%2\,|}$
+\item\texttt{MUL}\ \dots\ $\mathtt{\%0:=\%1\cdot\%2}$
+\item\texttt{POW}\ \dots\ $\displaystyle{\mathtt{\%0=\%1^{\%2}}}$
+\item\texttt{LT}\ \dots\ $\mathtt{\%0:=\%1<\%2}$
+\item\texttt{LE}\ \dots\ $\mathtt{\%0:=\%1\le\%2}$
+\item\texttt{EQ}\ \dots\ $\mathtt{\%0:=\%1=\%2}$
+\end{itemize}
+
+Pi¹ete li vlastite makroe i distribuirate li ih treæoj strani, budite
+sigurni da je kod implementacije dodatnih makroa nedvosmisleno
+definirano je li rijeè o evaluatoru totalne ili parcijalne funkcije,
+te, kod parcijalne funkcije, ¹to se zbiva u sluèaju nedozvoljenog
+ulaza.
+
+Takoðer, zapamtite da parcijalno rekurzivne funkcije, koje nisu
+rekurizvne, ne mogu imati svoj evaluator u \bso\ kolekciji.
+
+\texttt{NE}, \texttt{GE}, \texttt{GT} makroi za respektivne operatore
+$\ne$, $\ge$, $>$ ne postoje jer su negacija odgovarajuæih postojeæih
+operatora.
+\newpage
+\section{TODO}
+
+\begin{itemize}
+\item Specificirati GUI detaljnije.
+\end{itemize}
+
+\textbf{Primjedbe i komentare uputite na
+  \url{mailto:venovako@gmail.com}}
+\vfill
+\hfill\today
+\end{document}

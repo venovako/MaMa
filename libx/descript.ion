@@ -1,0 +1,6 @@
+DIREKTORIJ libx
+
+-> sadrzi Biblioteku Standardnih makrOa
+-> opcionalno sadrzi i dodatne makroe
+-> .MMb su datoteke debugging bytecodea
+-> .MMs su datoteke izvornog koda

@@ -1,0 +1,22 @@
+﻿	MaMa instalacija
+
+
+NE INSTALIRAJTE MaMa PAKET U DIREKTORIJ S BJELINAMA U PATHU!
+
+
+Prije korištenja paketa postavite MAMA_PATH environment varijablu
+na osnovni direktorij u kojem je MaMa instalirana.  Defaultno je
+to direktorij C:\MaMa na Windowsima ili /opt/MaMa na *nixu.
+
+Ako ne želite prčkati po environmentu, prilikom svakog korištenja
+MaMa paketa postavite tekući direktorij na osnovni MaMa direktorij,
+te izvršite MaMaVars.bat (odnosno "export MAMA_PATH=$PWD" na *nixu).
+
+Ako pak tu praksu smatrate napornom, postavite rečenu varijablu trajno:
+
+Za Windowse:
+
+Start --> Control Panel --> System --> Advanced --> Environment Variables
+
+Odlučite je li MaMa samo za vas ili još kojeg drugog korisnika, pa prema
+tome kreirajte User ili System varijablu, respektivno.  (Klik na New...)

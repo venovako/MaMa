@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MaMa", "MaMa\MaMa.vcxproj", "{F5C28AD0-40B1-4909-A72B-36492F9A7995}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MaMaC", "MaMaC\MaMaC.vcxproj", "{EBE7DDEA-C952-4E10-8379-7C8E8D773343}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5C28AD0-40B1-4909-A72B-36492F9A7995}.Debug|x64.ActiveCfg = Debug|x64
+		{F5C28AD0-40B1-4909-A72B-36492F9A7995}.Debug|x64.Build.0 = Debug|x64
+		{F5C28AD0-40B1-4909-A72B-36492F9A7995}.Release|x64.ActiveCfg = Release|x64
+		{F5C28AD0-40B1-4909-A72B-36492F9A7995}.Release|x64.Build.0 = Release|x64
+		{EBE7DDEA-C952-4E10-8379-7C8E8D773343}.Debug|x64.ActiveCfg = Debug|x64
+		{EBE7DDEA-C952-4E10-8379-7C8E8D773343}.Debug|x64.Build.0 = Debug|x64
+		{EBE7DDEA-C952-4E10-8379-7C8E8D773343}.Release|x64.ActiveCfg = Release|x64
+		{EBE7DDEA-C952-4E10-8379-7C8E8D773343}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

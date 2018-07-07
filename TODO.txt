@@ -1,0 +1,26 @@
+﻿20051016 (venovako)
+-------------------
+
+S verzijom 001-20051010 završeno je dodavanje novih featurea.
+Pored debuggiranja postojećih funkcionalnosti, za 00x- liniju
+planirana su još sljedeća izdanja i pripadne željene izmjene:
+
+
+002-: spec & lang fix
+
+HIGH> prevesti Specifikaciju s hrvatskog na engleski
+
+HIGH> prevesti preostale poruke s hrvatskog na engleski
+
+MED> prevesti komentare i source općenito na engleski, te
+    ga učiniti čitljivijim (komentari, preimenovanje varijabli...)
+
+00x-: bug & lang fix [ 3 <= x <= 9 ]
+
+020-: bytecode fix
+
+LOW> eventualno komprimirati CALL bytecode tako da se uvaži činjenica da
+    uvijek mora postojati barem jedan parametar, od kojih je prvi uvijek
+    registar, te da je za kodiranje sljedećih parametara dostatan 1 bit,
+    pa se jednim oktetom može unaprijed naznačiti tip do max 8 sljedećih
+    argumenata (uspije li se, prevesti i testirati na BSOu).

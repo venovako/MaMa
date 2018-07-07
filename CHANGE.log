@@ -1,0 +1,50 @@
+001-20180609: Osvježenje...
+
+001-20071110: Visual Studio 2005 SP1 fixevi.
+
+
+001-20060131: Visual Studio 2005 je stigao i u naš grad :-)
+
+
+001-20051120: Win32 installer i prelazak na VisualC++ 8.0 (venovako)
+
+
+001-20051019: portability & build fix (venovako)
+
+---> dodana podrška za GNU/x64 platformu
+
+---> pročišćena platformska podrška
+
+---> zapakirana pristojna source distribucija
+
+
+
+001-20051010: portability & speedup fix (venovako)
+
+---> prevedene usage i error poruke na engleski
+
+---> izbačeni bit-field elementi u potpunosti
+
+---> portano na 64-bitne platforme (WinXP pro x64)
+
+---> zgnječen POW BSO bug
+
+---> dodan bytecode stream cache:
+
+    mapira globalno sve otvorene bytecode input streamove u interpreteru;
+
+    npr. u mapping ovakvog tipa:
+    "ADD" ==> ifstream(".../ADD.MMb", ...)
+    "MUL" ==> ifstream(".../MUL.MMb", ...)
+
+    i drži streamove otvorenima svo vrijeme života root interpreterske
+    instance; file lookup politiku preuređena je tako da se pri CALL
+    pozivu prvo gleda u spomenuti mapping je li traženi fajl već otvoren,
+    a tek potom se ide tražiti po disku -- potpuna analogija s run-time
+    dinamičkim linkanjem, kojom dobivamo primjetno ubrzanje makro poziva
+
+
+000-20050830: inicijalni release (venovako)
+
+
+000-20050828: prerelease (venovako)
