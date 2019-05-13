@@ -33,23 +33,23 @@
 
 #ifndef PLATFORM_CHECKED
 
+#include <cassert>
 #include <climits>
-#include <boost/static_assert.hpp>
 
 // Provjera ispravnosti tipovnih definicija
 // Ovakva strogost nuzna je za binarni I/O
 
 namespace platform {
 
-  BOOST_STATIC_ASSERT(sizeof(S1) * CHAR_BIT ==  8);
-  BOOST_STATIC_ASSERT(sizeof(S2) * CHAR_BIT == 16);
-  BOOST_STATIC_ASSERT(sizeof(S4) * CHAR_BIT == 32);
-  BOOST_STATIC_ASSERT(sizeof(S8) * CHAR_BIT == 64);
+  static_assert(sizeof(S1) * CHAR_BIT ==  8);
+  static_assert(sizeof(S2) * CHAR_BIT == 16);
+  static_assert(sizeof(S4) * CHAR_BIT == 32);
+  static_assert(sizeof(S8) * CHAR_BIT == 64);
 
-  BOOST_STATIC_ASSERT(sizeof(U1) * CHAR_BIT ==  8);
-  BOOST_STATIC_ASSERT(sizeof(U2) * CHAR_BIT == 16);
-  BOOST_STATIC_ASSERT(sizeof(U4) * CHAR_BIT == 32);
-  BOOST_STATIC_ASSERT(sizeof(U8) * CHAR_BIT == 64);
+  static_assert(sizeof(U1) * CHAR_BIT ==  8);
+  static_assert(sizeof(U2) * CHAR_BIT == 16);
+  static_assert(sizeof(U4) * CHAR_BIT == 32);
+  static_assert(sizeof(U8) * CHAR_BIT == 64);
 
 }
 
