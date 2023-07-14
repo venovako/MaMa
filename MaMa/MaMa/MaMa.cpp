@@ -110,7 +110,9 @@ int main(const int argc, const char *const argv[]) {
     next = EXIT_FAILURE;
   }
 
-  delete root;
-  root = 0;
+  if (root) {
+    delete root;
+    root = 0;
+  }
   return next;
 }
